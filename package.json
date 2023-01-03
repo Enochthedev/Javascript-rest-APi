@@ -1,0 +1,22 @@
+{
+  "name": "javascript-rest-api",
+  "version": "1.0.0",
+  "description": "A nodejs RESTful api project shop API",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Enochthedev/Javascript-rest-APi.git"
+  },
+  "author": "toluthedev",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Enochthedev/Javascript-rest-APi/issues"
+  },
+  "homepage": "https://github.com/Enochthedev/Javascript-rest-APi#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
