@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+const cors = require('cors');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const mongoose = require("mongoose");
@@ -15,7 +16,8 @@ if (!process.env.DB_CONNECTION) {
   process.exit(1);
 }
 
-
+app.use(cors());
+app.options('*', cors());
 
 
 
