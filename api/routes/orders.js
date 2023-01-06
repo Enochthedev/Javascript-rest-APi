@@ -25,7 +25,6 @@ router.get('/:orderId', (req, res, next) => {
     });
 });
 
-    
 
 router.delete('/', (req, res, next) => {
     res.status(200).json({
