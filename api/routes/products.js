@@ -62,6 +62,7 @@ router.get('/', (req, res, next) => {
     });
 });
 
+//protect for only admins
 router.post('/', (req, res, next) => {
     //check if body is an array
     if(Array.isArray(req.body)){
@@ -208,6 +209,7 @@ router.get('/:productId', (req, res, next) => {
 
 });
 
+//protect for only admins
 router.patch('/:productId', (req, res, next) => {
     const id = req.params.productId;
     const Price = req.body.price;
@@ -245,7 +247,7 @@ router.patch('/:productId', (req, res, next) => {
     });
 
 });
-
+//protect for only admins
 router.delete('/:productId', (req, res, next) => {
     const id = req.params.productId;
     Product.findByIdAndDelete(id)
