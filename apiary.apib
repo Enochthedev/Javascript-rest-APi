@@ -1,39 +1,30 @@
 FORMAT: 1A
-HOST: https://polls.apiblueprint.org/
+HOST: https://enochs-shopping-api.herokuapp.com/
 
-# shopping API
 
-Polls is a simple API allowing consumers to view polls and vote in them.
+# Shopping API
 
-## Questions Collection [/questions]
+This is a boiler plate Javascript API for any shopping site
+the routes include 
+- Products
+- Orders
+- Authentication
+- Payment
+- Carts
 
-### List All Questions [GET]
+## Products [/products]
+
+### Get all products [GET]
 
 + Response 200 (application/json)
 
         [
             {
-                "question": "Favourite programming language?",
-                "published_at": "2015-08-05T08:40:51.620Z",
-                "choices": [
-                    {
-                        "choice": "Swift",
-                        "votes": 2048
-                    }, {
-                        "choice": "Python",
-                        "votes": 1024
-                    }, {
-                        "choice": "Objective-C",
-                        "votes": 512
-                    }, {
-                        "choice": "Ruby",
-                        "votes": 256
-                    }
-                ]
+            
             }
         ]
 
-### Create a New Question [POST]
+### Create a New Product [POST]
 
 You may create your own question using this action. It takes a JSON
 object containing a question and a collection of answers in the
