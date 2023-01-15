@@ -18,29 +18,102 @@ the routes include
 
 + Response 200 (application/json)
 
-        [
-            {
-            
-            }
-        ]
+        {    
+            "numberOfItems": 6,
+            "products": [
+                {
+                    "_id": "63b8045c0cb33615cbfdcbda",
+                    "name": "harry potter",
+                    "price": 79.4,
+                    "request": {
+                        "type": "GET",
+                        "url": "https://enochs-shopping-api.herokuapp.com/products/63b8045c0cb33615cbfdcbda"
+                    }
+                },
+                {
+                    "_id": "63b8103c09e68c38c445e505",
+                    "name": "wizard",
+                    "price": 79.4,
+                    "request": {
+                        "type": "GET",
+                        "url": "hhttps://enochs-shopping-api.herokuapp.com/products/63b8103c09e68c38c445e505"
+                    }
+                },
+                {
+                    "_id": "63b8103c09e68c38c445e504",
+                    "name": "ben 10",
+                    "price": 100,
+                    "request": {
+                        "type": "GET",
+                        "url": "https://enochs-shopping-api.herokuapp.com/products/63b8103c09e68c38c445e504"
+                    }
+                },
+                {
+                    "_id": "63b8298c687eab0a51a83183",
+                    "name": "iron man",
+                    "price": 200,
+                    "request": {
+                        "type": "GET",
+                        "url": "https://enochs-shopping-api.herokuapp.com/products/63b8298c687eab0a51a83183"
+                    }
+                },
+                {
+                    "_id": "63b82b67e333049f7a288bee",
+                    "name": "huggies",
+                    "price": 23,
+                    "request": {
+                        "type": "GET",
+                        "url": "https://enochs-shopping-api.herokuapp.com/products/63b82b67e333049f7a288bee"
+                    }
+                },
+                {
+                    "_id": "63c010c4274d4d1b3f5d5c52",
+                    "name": "ife's file",
+                    "price": 200,
+                    "request": {
+                        "type": "GET",
+                        "url": "https://enochs-shopping-api.herokuapp.com/products/63c010c4274d4d1b3f5d5c52"
+                    }
+                }
+            ]
+        }
 
 ### Create a New Product [POST]
 
-You may create your own question using this action. It takes a JSON
-object containing a question and a collection of answers in the
-form of choices.
+You may create your own product using this action. It takes a JSON
+object containing the product name, price, image link, category.
+Arrays can also be passed to the 
 
 + Request (application/json)
 
         {
-            "question": "Favourite programming language?",
-            "choices": [
-                "Swift",
-                "Python",
-                "Objective-C",
-                "Ruby"
-            ]
+            "name": "product name",
+            "price": "product price",
+            "image":" https link to product",
+            "category":"category"
         }
+        
+        or 
+        [
+            {
+            "name": "product name",
+            "price": "product price",
+            "image":" https link to product",
+            "category":"category"
+            },
+            {
+            "name": "product name",
+            "price": "product price",
+            "image":" https link to product",
+            "category":"category"
+            },
+            {
+            "name": "product name",
+            "price": "product price",
+            "image":" https link to product",
+            "category":"category"
+            }
+        ]
 
 + Response 201 (application/json)
 
@@ -51,21 +124,71 @@ form of choices.
     + Body
 
             {
-                "question": "Favourite programming language?",
-                "published_at": "2015-08-05T08:40:51.620Z",
-                "choices": [
-                    {
-                        "choice": "Swift",
-                        "votes": 0
-                    }, {
-                        "choice": "Python",
-                        "votes": 0
-                    }, {
-                        "choice": "Objective-C",
-                        "votes": 0
-                    }, {
-                        "choice": "Ruby",
-                        "votes": 0
+            "message": "Product created",
+            "createdProduct": {
+                    "_id": "63c33a2c7fe7cd2f07862724",
+                    "name": "ife's file 2",
+                    "price": 200,
+                    "return": {
+                        "type": "GET",
+                        "url": "https://enochs-shopping-api.herokuapp.com/products/63c33a2c7fe7cd2f07862724"
+                            }
                     }
-                ]
             }
+            
+            
+            
+## Products by ID [/products/ID]
+
+### Get a particular product [GET] 
+
++ Response 200 (application/json)
+
+        {
+            "product": {
+                "_id": "63c33a2c7fe7cd2f07862724",
+                "name": "ife's file 2",
+                "price": 200,
+                "__v": 0
+                    },
+            "request": {
+                "type": "GET",
+                "description": "Get all products",
+                "url": "https://enochs-shopping-api.herokuapp.com/products"
+                    }
+        }
+        
+### Patch a particular product [PATCH/ID]
+
++ Request (application/json)
+
+        {
+            "price":"300"
+        }
+
++ Response 200 (application/json)
+
+        {
+            "message": "price has been updated",
+            "response": {
+                "type": "GET",
+                "url": "https://enochs-shopping-api.herokuapp.com/products/63c33a2c7fe7cd2f07862724"
+            }
+        }
+        
+        
+### Delete a particualar product [DELETE/ID]
+
++ Response 200 (application/json)
+
+        {
+            "message": "Product has been deleted",
+            "response": {
+                "type": "POST",
+                "url": "https://enochs-shopping-api.herokuapp.com/products",
+                "body": {
+                    "name": "String",
+                    "price": "Number"
+                }
+            }
+        }
