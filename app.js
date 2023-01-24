@@ -9,6 +9,10 @@ require("dotenv/config");
 //routes which should handle requests
 const productsRoutes = require('./api/routes/products');
 const ordersRoutes = require('./api/routes/orders');
+const userRoutes = require('./api/routes/users');
+const cartRoutes = require('./api/routes/carts');
+const authRoutes = require('./api/routes/auths');
+const paymentRoutes = require('./api/routes/payments');
 mongoose.set("strictQuery", false);
 
 if (!process.env.DB_CONNECTION) {
@@ -37,9 +41,13 @@ app.use(bodyParser.json()); //json bodies
 
 
 
-
+app.use('/auth', authRoutes);
 app.use('/products', productsRoutes);
+app.use('/users', userRoutes);
 app.use('/orders', ordersRoutes);
+app.use('/carts', cartRoutes);
+app.use('/payments', paymentRoutes);
+
 
 app.use((req, res, next) => {
     const error = new Error('Not found');
