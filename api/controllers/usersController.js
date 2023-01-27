@@ -3,8 +3,8 @@ const mongoose = require('mongoose');
 const cart = require('../models/cart');
 //call tools to validate email and password
 const tools = require('../tools/tools');
-//call jwt
-
+const jwt = require('jsonwebtoken');
+const { token } = require('morgan');
 //call dotenv
 require('dotenv/config');
 site = process.env.url;
@@ -55,6 +55,46 @@ const create_user = (req, res, next) => {
     User.save()
         .then(result => {
             console.log(result);
+            //create token and login
+            if (tools.adminLock(result._id)) {
+                const adminToken = jwt.sign(
+                    {
+                        email: result.email,
+                        userId: result._id,
+                        role: admin
+                    },
+                    process.env.JWT_KEY,
+                    {
+                        expiresIn: "1h"
+                    }
+                );
+                return res.status(200).json({
+                    message: 'Admin user created',
+                    status: 'Auth successful',
+                    createdUser: {
+                        _id: result._id,
+                        email: result.email,
+                        request: {
+                            type: 'GET',
+                            url: site + 'users/details' + result._id
+                        },
+                    },
+                    token: adminToken,
+                    user: result
+                });
+            } else {
+                const userToken = jwt.sign(
+                    {
+                        email: result.email,
+                        userId: result._id,
+                        role: user
+                    },
+                    process.env.JWT_KEY,
+                    {
+                        expiresIn: "1h"
+                    }
+                );
+
             res.status(201).json({
                 message: 'User created',
                 createdUser: {
@@ -63,9 +103,12 @@ const create_user = (req, res, next) => {
                     request: {
                         type: 'GET',
                         url: site + 'users/details' + result._id
-                    }
+                    },
+                    token: userToken
                 }
             });
+        }
+        
         })
         .catch(err => {
             console.log(err);
@@ -100,21 +143,33 @@ const login_user = (req, res, next) => {
             }
             //compare password
             if (!tools.passwordCompare(req.body.password, user[0].password)) {
-                //create token
-                // const token = jwt.sign(
-                //     {
-                //         email: user[0].email,
-                //         userId: user[0]._id
-                //     },
-                //     process.env.JWT_KEY,
-                //     {
-                //         expiresIn: "1h"
-                //     }
-                // );
-                return res.status(200).json({
-                    message: 'login successful',
-                    // token: token
-                });
+                //create token 
+                //check if user is admin before creating token using adminlock
+                if (tools.adminLock(user[0]._id)) {
+                    const adminToken = jwt.sign(
+                        {
+                            email: user[0].email,
+                            userId: user[0]._id,
+                            role: admin
+                        },
+                        process.env.JWT_KEY, {
+                        expiresIn: "1h"
+                    }
+                    );
+                    return res.json({token: adminToken});
+                } else {
+                    const userToken = jwt.sign(
+                        {
+                            email: user[0].email,
+                            userId: user[0]._id,
+                            role: user
+                        },
+                        process.env.JWT_KEY, {
+                        expiresIn: "1h"
+                    }
+                    );
+                    return res.json({token: userToken});
+                }
             }
             res.status(401).json({
                 message: 'Auth failed'
@@ -132,15 +187,13 @@ const login_user = (req, res, next) => {
 //get user details by id
 const get_user_details = (req, res, next) => {
     const id = req.params.userId;
-    // const token = req.headers.authorization.split(" ")[1];
-    // const decoded = jwt.verify(token, process.env.JWT_KEY);
-    // // //check if user is admin or if user is the same as the one requesting details
-    // if (!tools.adminLock(decoded.userId) && decoded.userId != id) {
-    //     return res.status(401).json({
-    //         message: 'Unauthorized'
-    //     });
-    // }    
-    // console.log(id, token)
+    // check if user is admin or if user is the same as the one requesting details
+    if (!tools.adminLock(decoded.userId) && decoded.userId != id) {
+        return res.status(401).json({
+            message: 'Unauthorized'
+        });
+    }    
+    console.log(id, token)
 
     user.findById(id)
         .select('_id email firstName lastName address phoneNumber cart orders isAdmin')
@@ -167,15 +220,6 @@ const get_user_details = (req, res, next) => {
 
 //get all users 
 const get_all_users = (req, res, next) => {
-    // const token = req.headers.authorization.split(" ")[1];
-    // const callerId= req.headers.callerId;
-    //admin only call admin lock
-    // if (!tools.adminLock(req.headers.callerId)) {
-    //     return res.status(401).json({
-    //         message: 'Unauthorized'
-    //     });
-    // }
-    // console.log(callerId, token);
     user.find()
         .select('_id email firstName lastName address phoneNumber cart orders isAdmin')
         .exec()

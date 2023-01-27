@@ -7,10 +7,10 @@ const usersController = require('../controllers/usersController');
 
 
 // get all users route(admin only)
-router.get('/',usersController.get_all_users);
+router.get('/',tools.verifyToken,usersController.get_all_users);
 
 //get a particular user route
-router.get('/details/:userId',usersController.get_user_details);
+router.get('/details/:userId',tools.verifyToken,usersController.get_user_details);
 
 //create a new user route
 router.post('/signup',usersController.create_user);
@@ -19,11 +19,12 @@ router.post('/signup',usersController.create_user);
 router.post('/login',usersController.login_user);
 
 //update a user route
-router.patch('/:userId');
+router.patch('/:userId',tools.verifyToken,usersController.update_user);
 
 
 //delete a user route
-router.delete('/:userId');
+router.delete('/:userId',tools.verifyToken,usersController.delete_user);
+
 
 
 

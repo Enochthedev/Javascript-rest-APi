@@ -3,9 +3,8 @@ const router = express.Router();
 const mongoose = require('mongoose');
 
 
-//routes, login, signup, get payment status
 
-
+//routes, get payment status, update payment status
 
 
 

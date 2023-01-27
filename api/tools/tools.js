@@ -3,6 +3,7 @@ const user = require('../models/user');
 const bcrypt = require('bcrypt');
 const cart = require('../models/cart');
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 require("dotenv/config");
 //password validator function
 const passwordCheck = (password) => {
@@ -143,6 +144,34 @@ function compareLists(list1, list2) {
     const difference = list1.filter(x => !list2.includes(x));
     return difference;
 }
+//create jwt token function that generates a token based on the users admin status
+const createToken = (id, admin) => {
+    const token = jwt.sign({
+            email: user.email,
+            userId: user._id,
+            admin: user.admin
+        },
+        process.env.JWT_KEY, {
+            expiresIn: "1h"
+        }
+    );
+    return token;
+}
+
+//verify token function
+function verifyToken(req, res, next) {
+    const token = req.headers['x-access-token'];
+    if (!token) {
+      return res.status(401).send('Unauthorized');
+    }
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) {
+        return res.status(401).send('Unauthorized');
+      }
+      req.user = decoded;
+      next();
+    });
+  }
 
 
     
@@ -173,5 +202,7 @@ module.exports = {
     detailProtector,
     adminLock,
     compareLists,
-    checkForDuplicates
+    checkForDuplicates,
+    createToken,
+    verifyToken
 }
