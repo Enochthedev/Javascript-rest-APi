@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
 const tools = require('../tools/tools');
 //call controller
 const {products_get_all, products_create_product, products_get_product, products_update_product, products_delete_product} = require('../controllers/productsController');

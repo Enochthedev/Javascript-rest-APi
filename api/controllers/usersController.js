@@ -108,7 +108,7 @@ const create_user = (req, res, next) => {
                 }
             });
         }
-        
+
         })
         .catch(err => {
             console.log(err);
@@ -145,12 +145,12 @@ const login_user = (req, res, next) => {
             if (!tools.passwordCompare(req.body.password, user[0].password)) {
                 //create token 
                 //check if user is admin before creating token using adminlock
-                if (tools.adminLock(user[0]._id)) {
+                if (!tools.adminLock(user[0]._id)) {
                     const adminToken = jwt.sign(
                         {
                             email: user[0].email,
                             userId: user[0]._id,
-                            role: admin
+                            role: 'admin'
                         },
                         process.env.JWT_KEY, {
                         expiresIn: "1h"
@@ -162,7 +162,7 @@ const login_user = (req, res, next) => {
                         {
                             email: user[0].email,
                             userId: user[0]._id,
-                            role: user
+                            role: 'user'
                         },
                         process.env.JWT_KEY, {
                         expiresIn: "1h"
