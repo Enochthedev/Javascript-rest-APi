@@ -3,8 +3,12 @@ const user = require('../models/user');
 const bcrypt = require('bcrypt');
 const cart = require('../models/cart');
 const mongoose = require('mongoose');
+const order = require('../models/order');
+const generaluserdb = require('../models/userdb');
 const jwt = require('jsonwebtoken');
 require("dotenv/config");
+
+const SECRET_KEY = process.env.SECRET_KEY;
 //password validator function
 const passwordCheck = (password) => {
     if (password.length < 8) {
@@ -46,7 +50,6 @@ const passwordCompare = (password, hash) => {
     });
 }
 
-
 //email validator function
 const validateEmail = (email) => {
     if (email.length < 5) {
@@ -80,6 +83,88 @@ const userExists = (email) => {
             res.status(500).json({
                 error: err
             });
+        });
+}
+
+const activateUser = (email) => {
+    //check the general db for the user and change it to active 
+    generaluserdb.findOne({ email: email })
+        .exec()
+        .then(user => {
+            if (user) {
+                if (user.status == 'inactive') {
+                    //change the status to active
+                    user.status = 'active';
+                    user.save()
+                        .then(result => {
+                            console.log("User status changed to active");
+                            return true;
+                        })
+                        .catch(err => {
+                            console.log(err);
+                            return false;
+                        });
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        })
+        .catch(err => {
+            console.log(err);
+            return false;
+        });
+}
+
+const deactivateUser = (email) => {
+    //check the general db for the user and change it to inactive
+    generaluserdb.findOne({ email: email })
+        .exec()
+        .then(user =>  {
+            //deactivate the user
+            if (user) {
+                if (user.status == 'active') {
+                    //change the status to inactive
+                    user.status = 'inactive';
+                    user.save()
+                        .then(result => {
+                            console.log("User status changed to inactive");
+                            return true;
+                        })
+                        .catch(err => {
+                            console.log(err);
+                            return false;
+                        });
+                } else {
+                    return false;
+                }
+            }
+        })
+        .catch(err => {
+            console.log(err);
+            return false;
+        });
+
+}
+
+const addUser = (email,firsname,lastname) => {
+    //add the user to the general db
+    const User = new generaluserdb({
+        _id: new mongoose.Types.ObjectId(),
+        email: email,
+        firstname: firsname,
+        lastname: lastname,
+        status: 'active'
+    });
+    User.save()
+        .then(result => {
+            console.log("User added to general db");
+            return true;
+        })
+        .catch(err => {
+            console.log(err);
+            return false;
         });
 }
 
@@ -144,38 +229,45 @@ function compareLists(list1, list2) {
     const difference = list1.filter(x => !list2.includes(x));
     return difference;
 }
-//create jwt token function that generates a token based on the users admin status
-const createToken = (id, admin) => {
-    const token = jwt.sign({
-            email: user.email,
-            userId: user._id,
-            admin: user.admin
-        },
-        process.env.JWT_KEY, {
-            expiresIn: "1h"
-        }
-    );
-    return token;
-}
 
 //verify token function
 function verifyToken(req, res, next) {
-    const token = req.headers['x-access-token'];
-    if (!token) {
+    const authorization = req.headers.authorization;
+    if (!authorization) {
       return res.status(401).send('Unauthorized');
     }
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-      if (err) {
-        return res.status(401).send('Unauthorized');
-      }
-      req.user = decoded;
-      next();
-    });
+    try {
+        const token = authorization.split('Bearer ')[1];
+        if (!token) {
+            return res.status(401).json({
+                message: 'Invalid Token Format'
+            })
+        }
+        const decode = jwt.verify(token, SECRET_KEY);
+        req.user = decode
+        next()
+    } catch (error) {
+        if (error instanceof jwt.TokenExpiredError) {
+            return res.status(401).json({
+                message: 'Session Expired',
+                error: error.message,
+            })
+        }
+        if (error instanceof jwt.JsonWebTokenError || error instanceof TokenError) {
+            return res.status(401).json({
+                message: 'Invalid Token',
+                error: error.message,
+            })
+        }
+        res.status(500).json({
+            message: 'Internal server Error',
+            error: error.message,
+            stack: error.stack
+        });
+    }
   }
 
-
     
-
 function checkForDuplicates(products) {
     // Create an array to store the non-duplicate products
     const uniqueProducts = [];
@@ -203,6 +295,8 @@ module.exports = {
     adminLock,
     compareLists,
     checkForDuplicates,
-    createToken,
-    verifyToken
+    verifyToken,
+    activateUser,
+    addUser, 
+    deactivateUser
 }

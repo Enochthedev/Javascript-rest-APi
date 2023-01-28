@@ -29,7 +29,6 @@ const create_user = (req, res, next) => {
             message: 'Invalid password format'
         });
     }
-
     //check if req.body.adminpin is empty, if it is , isaAdmin = false else call adminPinCompare
     if (req.body.adminPin == '') {
         req.body.isAdmin = false;
@@ -38,6 +37,11 @@ const create_user = (req, res, next) => {
     }
     //hash password
     const hash = tools.passwordHash(req.body.password);
+    //check if user is in generaldb with email using tools,if user isnt in it add it with tools then continue
+    if (!tools.activateUser(req.body.email)) {
+        tools.addUser(req.body.email, req.body.firstName, req.body.lastName);
+    }
+
     //auto cart creation call from tools
     const cartId = tools.createCart();
     //create new user
@@ -255,7 +259,7 @@ const get_all_users = (req, res, next) => {
 };
 
 //update user
-const update_user = (req, res, next) => {
+const update_user = async (req, res, next) => {
     const id = req.params.userId;
     // check if user is admin or if user is the same as the one requesting details
     if (!tools.adminLock(decoded.userId) && decoded.userId != id) {
@@ -263,29 +267,22 @@ const update_user = (req, res, next) => {
             message: 'Unauthorized'
         });
     }
-    const updateOps = {};
-    for (const ops of req.body) {
-        updateOps[ops.propName] = ops.value;
+    const user = await User.findById(req.params.id);
+    if (!user) {
+        return res.status(404).send('User not found');
     }
-    user.update({ _id: id }, { $set: updateOps })
-        .exec()
-        .then(result => {
-            res.status(200).json({
-                message: 'User updated',
-                request: {
-                    type: 'GET',
-                    url: site + 'users/details/' + id
-                }
-            });
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({
-                error: err
-            });
-        });
-};
+    // Update the user's fields
+    if (req.body.name) user.name = req.body.name;
+    if (req.body.address) user.address = req.body.address;
+    if (req.body.phone) user.phone = req.body.phone;
+    if (req.body.payment) user.payment = req.body.payment;
+    // Save the updated user
+    const updatedUser = await user.save();
+    res.send(updatedUser);
 
+
+
+};
 
 //delete user
 const delete_user = (req, res, next) => {
@@ -295,17 +292,37 @@ const delete_user = (req, res, next) => {
         return res.status(401).json({
             message: 'Unauthorized'
         });
-    }
-    user.remove({ _id: id })
+    }//get the email by id
+    user.findById(id)
         .exec()
-        .then(result => {
-            res.status(200).json({
-                message: 'User deleted',
-                request: {
-                    type: 'POST',
-                    url: site + 'users/signup',
-                    body: { email: 'String', password: 'String' }
-                }
+        .then(user => {
+            if (!user) {
+                return res.status(404).json({
+                    message: 'User not found'
+                });
+            }
+            //get the email
+            const email = user.email;
+            //deactivte the user with the tool
+            tools.deactivateUser(email);
+            //delete the user
+            user.remove({ _id: id })
+            .exec()
+            .then(result => {
+                res.status(200).json({
+                    message: 'User deleted',
+                    request: {
+                        type: 'POST',
+                        url: site + 'users/signup',
+                        body: { email: 'String', password: 'String' }
+                    }
+                });
+            })
+            .catch(err => {
+                console.log(err);
+                res.status(500).json({
+                    error: err
+                });
             });
         })
         .catch(err => {

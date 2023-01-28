@@ -38,11 +38,17 @@ const userSchema = new Schema({
         type: Array,
         default: []
     },
+    previousBundles: [{ type: Schema.Types.ObjectId, ref: 'Order' }],
     //key attribute to determine if user is admin
     isAdmin: {
         type: Boolean,
         default: false
+    },
+    timestamp: {
+        type: Date,
+        default: Date.now
     }
+
 });
 
 module.exports = mongoose.model('User', userSchema);
