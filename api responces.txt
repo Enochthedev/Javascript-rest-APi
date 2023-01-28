@@ -1,9 +1,0 @@
-{
-    "firstName":"enoch",
-    "lastName":"jesse",
-    "password":"Ad@m1234",
-    "email":"ben10@gmail.com",
-    "address":"university of ibadan",
-    "phoneNumber":"09073069006",
-    "adminPin":"admin"
-}

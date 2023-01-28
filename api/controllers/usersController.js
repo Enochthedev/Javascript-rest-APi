@@ -10,19 +10,23 @@ require('dotenv/config');
 site = process.env.url;
 
 //signup
-const create_user = (req, res, next) => {
+const create_user = async (req, res, next) => {
     //check if email is valid
+     
     if (!tools.validateEmail(req.body.email)) {
         return res.status(400).json({
             message: 'Invalid email'
         });
     }
     //check if user already exists
-    if (!tools.userExists(req.body.email)) {
+
+    const userExists = await tools.checkUserExists(req.body.email);
+    if (userExists) {
         return res.status(400).json({
             message: 'User already exists'
         });
     }
+
     //check if password is valid
     if (!tools.passwordCheck(req.body.password)) {
         return res.status(400).json({
@@ -37,13 +41,18 @@ const create_user = (req, res, next) => {
     }
     //hash password
     const hash = tools.passwordHash(req.body.password);
-    //check if user is in generaldb with email using tools,if user isnt in it add it with tools then continue
-    if (!tools.activateUser(req.body.email)) {
-        tools.addUser(req.body.email, req.body.firstName, req.body.lastName);
+    //check if user is in general db and activate if true else add to general db
+
+    const userExistsInGeneralDb = await tools.checkUserExistsInGeneralDb(req.body.email);
+    console.log(userExistsInGeneralDb);
+    if (userExistsInGeneralDb) {
+        tools.activateUser(req.body.email);
+    } else {
+        tools.addUserToGeneralDb(req.body.email, req.body.firstName, req.body.lastName);
     }
 
     //auto cart creation call from tools
-    const cartId = tools.createCart();
+    const cartId = await tools.createCart();
     //create new user
     const User = new user({
         _id: new mongoose.Types.ObjectId(),
@@ -58,7 +67,6 @@ const create_user = (req, res, next) => {
     });
     User.save()
         .then(result => {
-            console.log(result);
             //create token and login
             if (tools.adminLock(result._id)) {
                 const adminToken = jwt.sign(
@@ -91,7 +99,7 @@ const create_user = (req, res, next) => {
                     {
                         email: result.email,
                         userId: result._id,
-                        role: user
+                        role : user
                     },
                     process.env.JWT_KEY,
                     {

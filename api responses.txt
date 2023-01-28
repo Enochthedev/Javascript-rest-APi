@@ -1,0 +1,14 @@
+{
+    "firstName":"david",
+    "lastName":"john",
+    "password":"Gr@yvy124",
+    "email":"bellcranel@gmail.com",
+    "address":"university of lagos",
+    "phoneNumber":"09083069006",
+    "adminPin":""
+}
+login params
+{
+    "password":"Ad@m1234",
+    "email":"ben10@gmail.com"
+}

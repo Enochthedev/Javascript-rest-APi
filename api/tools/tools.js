@@ -67,105 +67,96 @@ const validateEmail = (email) => {
     return true;
 }
 
+//this is checking the basic user db(used for survey,email newsletter,etc)
+const checkUserExistsInGeneralDb = async (email) => {
+    try {
+        const User = await user.findOne({ email: email });
+        if (User) {
+            return true;
+        } else {
+            return false;
+        }
+    } catch (err) {
+        console.log(err);
+        throw new Error('An error occurred while checking for user ');
+    }
+}
+
+
 //check if user already exists
-const userExists = (email) => {
-    user.find({ email: email})  
-        .exec()
-        .then(user => {
-            if (user.length >= 1) {
+const  checkUserExists = async (email) => {
+    try {
+        const User = await user.findOne({ email: email });
+        if (User) {
+            return true;
+        } else {
+            return false;
+        }
+    } catch (err) {
+        console.log(err);
+        throw new Error('An error occurred while checking for user ');
+    }
+}
+
+const activateUser = async(email) => {
+    //check the general db for the user and change it to active 
+     try {
+        const User = await generaluserdb.findOne({ email: email });
+        if (User) {
+            if (User.status == 'inactive') {
+                //change the status to active
+                User.status = 'active';
+                const result = await User.save();
                 return true;
             } else {
                 return false;
             }
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({
-                error: err
-            });
-        });
+        }
+    } catch (err) {
+        console.log(err);
+        throw new Error('An error occurred while activating user ');
+    }
 }
+  
 
-const activateUser = (email) => {
-    //check the general db for the user and change it to active 
-    generaluserdb.findOne({ email: email })
-        .exec()
-        .then(user => {
-            if (user) {
-                if (user.status == 'inactive') {
-                    //change the status to active
-                    user.status = 'active';
-                    user.save()
-                        .then(result => {
-                            console.log("User status changed to active");
-                            return true;
-                        })
-                        .catch(err => {
-                            console.log(err);
-                            return false;
-                        });
-                } else {
-                    return false;
-                }
+const deactivateUser = async (email) => {
+    //check the general db for the user and change it to inactive
+    try {
+        const user = generaluserdb.findOne({ email: email });
+        if (user) {
+            if (user.status == 'active') {
+                //change the status to inactive
+                user.status = 'inactive';
+                const result = await user.save();
+                return true;
             } else {
                 return false;
             }
-        })
-        .catch(err => {
-            console.log(err);
-            return false;
-        });
+        }
+    } catch (err) {
+        console.log(err);
+        throw new Error('An error occurred while deactivating user ');
+    }    
 }
 
-const deactivateUser = (email) => {
-    //check the general db for the user and change it to inactive
-    generaluserdb.findOne({ email: email })
-        .exec()
-        .then(user =>  {
-            //deactivate the user
-            if (user) {
-                if (user.status == 'active') {
-                    //change the status to inactive
-                    user.status = 'inactive';
-                    user.save()
-                        .then(result => {
-                            console.log("User status changed to inactive");
-                            return true;
-                        })
-                        .catch(err => {
-                            console.log(err);
-                            return false;
-                        });
-                } else {
-                    return false;
-                }
-            }
-        })
-        .catch(err => {
-            console.log(err);
-            return false;
-        });
-
-}
-
-const addUser = (email,firsname,lastname) => {
+const addUserToGeneralDb =  async (email,firstname,lastname) => {
     //add the user to the general db
-    const User = new generaluserdb({
-        _id: new mongoose.Types.ObjectId(),
-        email: email,
-        firstname: firsname,
-        lastname: lastname,
-        status: 'active'
-    });
-    User.save()
-        .then(result => {
-            console.log("User added to general db");
-            return true;
-        })
-        .catch(err => {
-            console.log(err);
-            return false;
+    try{
+        const User = new generaluserdb({
+            _id: new mongoose.Types.ObjectId(),
+            email: email,
+            firstName: firstname,
+            lastName: lastname,
+            status: 'active'
         });
+        const result = await User.save();
+        console.log(result);
+        return true;
+    }
+    catch (err) {
+        console.log(err);
+        throw new Error('An error occurred while adding user ');
+    }
 }
 
 //admin validator function get password from env
@@ -207,21 +198,19 @@ const detailProtector = (id) => {
 }
 
 //create an empty cart and send back id
-const createCart = () => {
-    const Cart = new cart({
-        _id: new mongoose.Types.ObjectId(),
-        items: []
-    });
-    Cart.save()
-        .then(result => {
-            return result._id;
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({
-                error: err
-            });
+const createCart = async () => {
+    try {
+        const Cart = new cart({
+            _id: new mongoose.Types.ObjectId(),
+            items: []
         });
+        const result = await Cart.save();
+        return result._id;
+    }
+    catch (err) {
+        console.log(err);
+        throw new Error('An error occurred while creating cart ');
+    }
 }
 
 function compareLists(list1, list2) {
@@ -288,15 +277,16 @@ module.exports = {
     passwordHash,
     passwordCompare,
     adminValidator,
+    checkUserExistsInGeneralDb,
     validateEmail,
     createCart,
-    userExists,
+    checkUserExists,
     detailProtector,
     adminLock,
     compareLists,
     checkForDuplicates,
     verifyToken,
     activateUser,
-    addUser, 
+    addUserToGeneralDb, 
     deactivateUser
 }
