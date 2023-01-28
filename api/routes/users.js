@@ -19,11 +19,11 @@ router.post('/signup',usersController.create_user);
 router.post('/login',usersController.login_user);
 
 //update a user route
-router.patch('/:userId',tools.verifyToken);
+router.patch('/:userId',tools.verifyToken,usersController.update_user);
 
 
 //delete a user route
-router.delete('/:userId',tools.verifyToken);
+router.delete('/:userId',tools.verifyToken,usersController.delete_user);
 
 
 

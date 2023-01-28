@@ -254,7 +254,68 @@ const get_all_users = (req, res, next) => {
         });
 };
 
-//delete user, admin and user only
+//update user
+const update_user = (req, res, next) => {
+    const id = req.params.userId;
+    // check if user is admin or if user is the same as the one requesting details
+    if (!tools.adminLock(decoded.userId) && decoded.userId != id) {
+        return res.status(401).json({
+            message: 'Unauthorized'
+        });
+    }
+    const updateOps = {};
+    for (const ops of req.body) {
+        updateOps[ops.propName] = ops.value;
+    }
+    user.update({ _id: id }, { $set: updateOps })
+        .exec()
+        .then(result => {
+            res.status(200).json({
+                message: 'User updated',
+                request: {
+                    type: 'GET',
+                    url: site + 'users/details/' + id
+                }
+            });
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json({
+                error: err
+            });
+        });
+};
+
+
+//delete user
+const delete_user = (req, res, next) => {
+    const id = req.params.userId;
+    // check if user is admin or if user is the same as the one requesting details
+    if (!tools.adminLock(decoded.userId) && decoded.userId != id) {
+        return res.status(401).json({
+            message: 'Unauthorized'
+        });
+    }
+    user.remove({ _id: id })
+        .exec()
+        .then(result => {
+            res.status(200).json({
+                message: 'User deleted',
+                request: {
+                    type: 'POST',
+                    url: site + 'users/signup',
+                    body: { email: 'String', password: 'String' }
+                }
+            });
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).json({
+                error: err
+            });
+        });
+};
+
 
 
 
@@ -262,5 +323,7 @@ module.exports = {
     create_user,
     login_user,
     get_user_details,
-    get_all_users
+    get_all_users,
+    update_user,
+    delete_user
 };
