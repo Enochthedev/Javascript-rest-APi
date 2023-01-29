@@ -12,3 +12,23 @@ login params
     "password":"Ad@m1234",
     "email":"ben10@gmail.com"
 }
+
+-note add logout, refresh token, and forgot password
+-fix update user
+
+then move to auth
+-add auth middleware
+-add auth controller
+-add auth routes
+- add auth for google and facebook
+
+then move to admin
+-add admin middleware
+-add admin controller
+-add admin routes
+- add admin for google and facebook
+
+
+change the location of verify token to the middleware folder
+change the location of verify admin to the middleware folder
+change the location of any auth based middleware to the middleware folder
