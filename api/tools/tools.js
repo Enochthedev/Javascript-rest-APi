@@ -8,7 +8,7 @@ const generaluserdb = require('../models/userdb');
 const jwt = require('jsonwebtoken');
 require("dotenv/config");
 
-const SECRET_KEY = process.env.SECRET_KEY;
+const SECRET_KEY = process.env.JWT_KEY;
 //password validator function
 const passwordCheck = (password) => {
     if (password.length < 8) {
@@ -70,7 +70,7 @@ const validateEmail = (email) => {
 //this is checking the basic user db(used for survey,email newsletter,etc)
 const checkUserExistsInGeneralDb = async (email) => {
     try {
-        const User = await user.findOne({ email: email });
+        const User = await generaluserdb.findOne({ email: email });
         if (User) {
             return true;
         } else {
@@ -122,7 +122,7 @@ const activateUser = async(email) => {
 const deactivateUser = async (email) => {
     //check the general db for the user and change it to inactive
     try {
-        const user = generaluserdb.findOne({ email: email });
+        const user = await generaluserdb.findOne({ email: email });
         if (user) {
             if (user.status == 'active') {
                 //change the status to inactive
@@ -159,6 +159,23 @@ const addUserToGeneralDb =  async (email,firstname,lastname) => {
     }
 }
 
+const deleteUser = async (email) => {
+    //delete the user from the user db
+    try {
+        const User = await user.findOneAndDelete({ email: email });
+        if (User) {
+            return true;
+        } else {
+            return false;
+        }
+    } catch (err) {
+        console.log(err);
+        throw new Error('An error occurred while deleting user ');
+    }
+}
+
+
+
 //admin validator function get password from env
 const adminValidator = (password) => {
     if (password == process.env.ADMIN_PASSWORD) {
@@ -169,22 +186,18 @@ const adminValidator = (password) => {
 }
 
 //admin lock function , take the id of the user and check in the database if he is admin
-const adminLock = (id) => {
-    user.findById(id)
-        .exec()
-        .then(user => {
-            if (user.admin == true) {
-                return true;
-            } else {
-                return false;
-            }
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).json({
-                error: err
-            });
-        });
+const adminLock = async (id) => {
+    try {
+        const User = await user.findById(id);
+        if (User.isAdmin == true) {
+            return true;
+        } else {
+            return false;
+        }
+    } catch (err) {
+        console.log(err);
+        throw new Error('An error occurred while checking for admin ');
+    }
 }
 
 //detail protector
@@ -256,6 +269,8 @@ function verifyToken(req, res, next) {
     }
   }
 
+
+
     
 function checkForDuplicates(products) {
     // Create an array to store the non-duplicate products
@@ -287,6 +302,7 @@ module.exports = {
     checkForDuplicates,
     verifyToken,
     activateUser,
-    addUserToGeneralDb, 
+    addUserToGeneralDb,
+    deleteUser, 
     deactivateUser
 }

@@ -66,9 +66,10 @@ const create_user = async (req, res, next) => {
         isAdmin: req.body.isAdmin,
     });
     User.save()
-        .then(result => {
+        .then(async result => {
             //create token and login
-            if (tools.adminLock(result._id)) {
+            const adminLock = await tools.adminLock(result._id);
+            if (adminLock) {
                 const adminToken = jwt.sign(
                     {
                         email: result.email,
@@ -99,7 +100,7 @@ const create_user = async (req, res, next) => {
                     {
                         email: result.email,
                         userId: result._id,
-                        role : user
+                        role: user
                     },
                     process.env.JWT_KEY,
                     {
@@ -132,7 +133,7 @@ const create_user = async (req, res, next) => {
 };
 
 //login
-const login_user = (req, res, next) => {
+const login_user = async (req, res, next) => {
     //check if email is valid
     if (!tools.validateEmail(req.body.email)) {
         return res.status(400).json({
@@ -147,7 +148,7 @@ const login_user = (req, res, next) => {
     }
     user.find({ email: req.body.email })
         .exec()
-        .then(user => {
+        .then(async user => {
             if (user.length < 1) {
                 return res.status(401).json({
                     message: 'User not found'
@@ -157,7 +158,8 @@ const login_user = (req, res, next) => {
             if (!tools.passwordCompare(req.body.password, user[0].password)) {
                 //create token 
                 //check if user is admin before creating token using adminlock
-                if (!tools.adminLock(user[0]._id)) {
+                const adminLock = await tools.adminLock(user[0]._id);
+                if (adminLock) {
                     const adminToken = jwt.sign(
                         {
                             email: user[0].email,
@@ -293,17 +295,20 @@ const update_user = async (req, res, next) => {
 };
 
 //delete user
-const delete_user = (req, res, next) => {
+const delete_user = async (req, res, next) => {
     const id = req.params.userId;
     // check if user is admin or if user is the same as the one requesting details
-    if (!tools.adminLock(decoded.userId) && decoded.userId != id) {
+    //get async response for admin lock
+    console.log(req.user.role)
+    if (!req.user.role=='admin' && req.user.userId != id) {
         return res.status(401).json({
             message: 'Unauthorized'
         });
-    }//get the email by id
+    }
+
     user.findById(id)
         .exec()
-        .then(user => {
+        .then(async user => {
             if (!user) {
                 return res.status(404).json({
                     message: 'User not found'
@@ -311,26 +316,19 @@ const delete_user = (req, res, next) => {
             }
             //get the email
             const email = user.email;
+            console.log(email);
             //deactivte the user with the tool
-            tools.deactivateUser(email);
+            const deactivateResult = await tools.deactivateUser(email);
             //delete the user
-            user.remove({ _id: id })
-            .exec()
-            .then(result => {
-                res.status(200).json({
-                    message: 'User deleted',
-                    request: {
-                        type: 'POST',
-                        url: site + 'users/signup',
-                        body: { email: 'String', password: 'String' }
-                    }
-                });
-            })
-            .catch(err => {
-                console.log(err);
-                res.status(500).json({
-                    error: err
-                });
+            const result = await tools.deleteUser(email);
+            console.log(result);
+            res.status(200).json({
+                message: 'User deleted',
+                request: {
+                    type: 'POST',
+                    url: site + 'users/signup',
+                    body: { email: 'String', password: 'String' }
+                }
             });
         })
         .catch(err => {
