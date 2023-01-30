@@ -25,7 +25,8 @@ router.patch('/:userId',tools.verifyToken,usersController.update_user);
 //delete a user route
 router.delete('/:userId',tools.verifyToken,usersController.delete_user);
 
-
+//logout route
+router.post('/logout',tools.verifyToken,usersController.logout_user);
 
 
 
