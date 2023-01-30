@@ -13,14 +13,18 @@ login params
     "email":"ben10@gmail.com"
 }
 
--note add logout, refresh token, and forgot password
+-note add refresh token, and forgot password,google auth,validate email by sending a link to the email(change signup to this format) 
 -fix update user
 
 then move to auth
 -add auth middleware
 -add auth controller
 -add auth routes
-- add auth for google and facebook
+-add auth for google and facebook
+
+-share cart with friends so that they can pay for you
+-add a way to pay for friends
+-add a way to pay for friends with a link
 
 then move to admin
 -add admin middleware
